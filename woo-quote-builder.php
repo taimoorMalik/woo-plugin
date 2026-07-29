@@ -20,7 +20,9 @@ define( 'WQ_BUILDER_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WQ_BUILDER_URL', plugin_dir_url( __FILE__ ) );
 
 // Include required files.
-require_once WQ_BUILDER_PATH . 'vendor/autoload.php';
+if ( file_exists( WQ_BUILDER_PATH . 'vendor/autoload.php' ) ) {
+    require_once WQ_BUILDER_PATH . 'vendor/autoload.php';
+}
 require_once WQ_BUILDER_PATH . 'includes/admin.php';
 require_once WQ_BUILDER_PATH . 'includes/api.php';
 require_once WQ_BUILDER_PATH . 'includes/form-handler.php';
