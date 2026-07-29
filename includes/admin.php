@@ -1406,11 +1406,14 @@ function wq_admin_styles() {
                 if (isQuoteProduct) {
                     $('#general_product_data').addClass('wq-hide-price-fields');
                     $('#general_product_data').addClass('wq-show-custom-fields');
+                    $('.general_tab').addClass('show_if_variable');
                 } else {
                     $('#general_product_data').removeClass('wq-hide-price-fields');
                     $('#general_product_data').removeClass('wq-show-custom-fields');
+                    $('.general_tab').removeClass('show_if_variable');
                 }
             }
+
             setTimeout(checkCategories, 500); 
             $('#product_catdiv').on('change', 'input[type="checkbox"]', checkCategories);
         });
