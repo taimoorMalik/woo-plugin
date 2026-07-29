@@ -1164,7 +1164,8 @@ function wq_add_custom_fields_to_product() {
                     'desc_tip'    => 'true',
                     'description' => $field['desc'],
                     'type'        => $type,
-                    'custom_attributes' => $custom_attributes
+                    'custom_attributes' => $custom_attributes,
+                    'wrapper_class' => 'show_if_simple show_if_variable'
                 )
             );
         }
@@ -1177,6 +1178,7 @@ function wq_add_custom_fields_to_product() {
                 'placeholder' => '18',
                 'desc_tip'    => 'true',
                 'description' => __( 'Enter the thickness of the material in mm.', 'woo-quote-builder' ),
+                'wrapper_class' => 'show_if_simple show_if_variable'
             )
         );
         // ... Render other legacy fields manually if not in DB ...
@@ -1187,6 +1189,7 @@ function wq_add_custom_fields_to_product() {
             'id'          => '_wq_has_edgebanding',
             'label'       => __( 'Has EDGEBANDING', 'woo-quote-builder' ),
             'description' => __( 'Enable edgebanding options for this product.', 'woo-quote-builder' ),
+            'wrapper_class' => 'show_if_simple show_if_variable'
         )
     );
     
@@ -1227,11 +1230,12 @@ function wq_add_custom_fields_to_product() {
             'id'          => '_wq_has_operations',
             'label'       => __( 'Has OPERATION', 'woo-quote-builder' ),
             'description' => __( 'Enable operations for this product.', 'woo-quote-builder' ),
-            'value'       => $has_operations === 'yes' ? 'yes' : 'no'
+            'value'       => $has_operations === 'yes' ? 'yes' : 'no',
+            'wrapper_class' => 'show_if_simple show_if_variable'
         )
     );
     ?>
-    <p class="form-field _wq_operation_indexes_field">
+    <p class="form-field _wq_operation_indexes_field show_if_simple show_if_variable">
         <label for="_wq_operation_indexes"><?php _e('Operations', 'woo-quote-builder'); ?></label>
         <select id="_wq_operation_indexes" name="_wq_operation_indexes[]" class="wc-enhanced-select" multiple="multiple" style="width: 50%;">
             <?php if (is_array($ops)) : ?>
@@ -1261,11 +1265,12 @@ function wq_add_custom_fields_to_product() {
             'id'          => '_wq_has_preferred_edging',
             'label'       => __( 'Has PREFERRED EDGING', 'woo-quote-builder' ),
             'description' => __( 'Enable preferred edging selector for this product.', 'woo-quote-builder' ),
-            'value'       => $has_preferred_edging === 'yes' ? 'yes' : 'no'
+            'value'       => $has_preferred_edging === 'yes' ? 'yes' : 'no',
+            'wrapper_class' => 'show_if_simple show_if_variable'
         )
     );
     ?>
-    <p class="form-field _wq_preferred_edge_service_field">
+    <p class="form-field _wq_preferred_edge_service_field show_if_simple show_if_variable">
         <label for="_wq_preferred_edge_services"><?php _e('Preferred Edging', 'woo-quote-builder'); ?></label>
         <select id="_wq_preferred_edge_services" name="_wq_preferred_edge_services[]" class="wc-enhanced-select" multiple="multiple" style="width: 50%;">
             <?php foreach ($options as $id => $label) : ?>
