@@ -1220,6 +1220,9 @@ function wq_builder_product_data_fields() {
     
     // Get currently selected values
     global $post;
+    if ( ! is_object( $post ) ) {
+        return;
+    }
     $ops = get_option('wq_edge_operations', array());
     $has_operations = get_post_meta($post->ID, '_wq_has_operations', true);
     $selected_ops = get_post_meta($post->ID, '_wq_operation_indexes', true);
@@ -1367,8 +1370,10 @@ function wq_admin_styles() {
             const categoryParents = <?php 
                 $cat_parents = array();
                 $all_terms = get_terms('product_cat', array('hide_empty' => false));
-                foreach ($all_terms as $term) {
-                    $cat_parents[$term->term_id] = $term->parent;
+                if ( ! is_wp_error( $all_terms ) ) {
+                    foreach ($all_terms as $term) {
+                        $cat_parents[$term->term_id] = $term->parent;
+                    }
                 }
                 echo json_encode($cat_parents);
             ?>;
