@@ -164,8 +164,8 @@ function wq_builder_scripts() {
         $custom_fields = array(
              array('label' => 'Thickness (mm)', 'slug' => 'thickness', 'type' => 'number', 'placeholder' => '18'),
              array('label' => 'Price per MM²', 'slug' => 'wq_pricing_per_mm', 'type' => 'number', 'placeholder' => '0.00005'),
-             array('label' => 'Max Length (mm)', 'slug' => 'wq_max_length', 'type' => 'number', 'placeholder' => '2440'),
-             array('label' => 'Max Width (mm)', 'slug' => 'wq_max_width', 'type' => 'number', 'placeholder' => '1220'),
+             array('label' => 'Max Length (mm)', 'slug' => 'wq_max_length', 'type' => 'number', 'placeholder' => '2800'),
+             array('label' => 'Max Width (mm)', 'slug' => 'wq_max_width', 'type' => 'number', 'placeholder' => '2070'),
              array('label' => 'Min Length (mm)', 'slug' => 'wq_min_length', 'type' => 'number', 'placeholder' => '100'),
              array('label' => 'Min Width (mm)', 'slug' => 'wq_min_width', 'type' => 'number', 'placeholder' => '100'),
         );

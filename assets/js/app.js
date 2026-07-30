@@ -676,7 +676,35 @@ jQuery(document).ready(function($) {
                         
                     $row.find('.wq-selected-product-id').data('allowed-edge-services', null);
                      
-                     $row.find('.wq-row-thickness input').val(product.thickness);
+                                 var thicknessContainer = $row.find('.wq-row-thickness');
+            var thicknessInput = thicknessContainer.find('.wq-thickness-input');
+            var thicknessSelect = thicknessContainer.find('.wq-thickness-select');
+
+            if (product.is_variable && product.variations && product.variations.length > 0) {
+                thicknessInput.hide();
+                thicknessSelect.empty().show();
+
+                product.variations.forEach(function(v) {
+                    var optionText = v.thickness || 'Variation ' + v.id;
+                    if (v.thickness && !v.thickness.toString().toLowerCase().includes('mm')) {
+                        optionText += 'mm';
+                    }
+                    thicknessSelect.append('<option value="' + v.id + '" data-price="' + v.price + '" data-sku="' + v.sku + '" data-thickness="' + v.thickness + '">' + optionText + '</option>');
+                });
+
+                $row.data('variations', product.variations);
+                $row.data('is_variable', true);
+
+                thicknessSelect.off('change').on('change', function() {
+                    updatePricing();
+                    updateStatus($row);
+                });
+
+            } else {
+                thicknessSelect.hide();
+                thicknessInput.show().val(product.thickness || '18');
+                $row.data('is_variable', false);
+            }
                      
                      // Enable Checkboxes if needed
                      if (product.has_edgebanding) {
@@ -961,7 +989,7 @@ jQuery(document).ready(function($) {
                 .data('preferred-edge-services', preferredEdgeServices)
                 .data('image', image);
                 
-            $row.find('.wq-row-thickness input').val(thickness);
+            if ($row.data('is_variable')) { $row.find('.wq-thickness-select').val(thickness); } else { $row.find('.wq-thickness-input').val(thickness); }
             
             // Set Tooltips for Min/Max Dimensions
             // Use mapped fields if available, otherwise fallback to defaults (though defaults should be passed from backend)
@@ -1209,7 +1237,7 @@ jQuery(document).ready(function($) {
             const length = parseFloat(row.find('.wq-row-length input').val()) || 0;
             const width = parseFloat(row.find('.wq-row-width input').val()) || 0;
             const qty = parseInt(row.find('.wq-row-qty input').val()) || 0;
-            const thickness = row.find('.wq-row-thickness input').val(); // DEFINED HERE
+            const thickness = row.data('is_variable') ? (row.find('.wq-thickness-select option:selected').data('thickness') || row.find('.wq-thickness-select option:selected').text().replace('mm', '')) : row.find('.wq-thickness-input').val(); // DEFINED HERE
             const lengthMm = dimensionToMm(length);
             const widthMm = dimensionToMm(width);
             
@@ -1264,6 +1292,15 @@ jQuery(document).ready(function($) {
                 const areaM2 = lengthM * widthM;
                 const perimeterMm = (2 * lengthMm) + (2 * widthMm);
                 const perimeterM = perimeterMm / 1000;
+                let basePriceVal = parseFloat(productData.data('price')) || 0;
+                let isVariable = row.data('is_variable');
+                if (isVariable) {
+                    var selectedOption = row.find('.wq-thickness-select option:selected');
+                    if (selectedOption.length) {
+                        let variationPrice = parseFloat(selectedOption.data('price')) || 0;
+                        basePriceVal = variationPrice;
+                    }
+                }
                 const pricePerMm2 = (() => {
                     const raw = customAttributes && customAttributes.wq_pricing_per_mm !== undefined ? customAttributes.wq_pricing_per_mm : (customAttributes ? customAttributes.price_per_mm2 : undefined);
                     const v = parseFloat(raw);
@@ -1287,6 +1324,7 @@ jQuery(document).ready(function($) {
                 formula = replaceToken(formula, 'area_m2', areaM2);
                 formula = replaceToken(formula, 'perimeter_mm', perimeterMm);
                 formula = replaceToken(formula, 'perimeter_m', perimeterM);
+                formula = replaceToken(formula, 'price', basePriceVal);
                 formula = replaceToken(formula, 'price_per_mm2', pricePerMm2);
                 formula = replaceToken(formula, 'price_per_m2', pricePerM2);
                 
@@ -1338,7 +1376,7 @@ jQuery(document).ready(function($) {
             // In my previous `Read` output (lines 550-849), `const thickness` was NOT defined in the variable block.
             // It was missing!
             
-            // I will inject `const thickness = row.find('.wq-row-thickness input').val();` near the other const definitions.
+
 
                 
                 // --- Edgebanding Calculation ---
@@ -1890,7 +1928,7 @@ jQuery(document).ready(function($) {
                 // Re-calculate row data to ensure fresh breakdown
                 const length = parseFloat(row.find('.wq-row-length input').val()) || 0;
                 const width = parseFloat(row.find('.wq-row-width input').val()) || 0;
-                const thickness = row.find('.wq-row-thickness input').val();
+                const thickness = row.data('is_variable') ? (row.find('.wq-thickness-select option:selected').data('thickness') || row.find('.wq-thickness-select option:selected').text().replace('mm', '')) : row.find('.wq-thickness-input').val();
                 const lengthMm = dimensionToMm(length);
                 const widthMm = dimensionToMm(width);
                 
@@ -1996,7 +2034,15 @@ jQuery(document).ready(function($) {
                 const areaM2 = lengthM * widthM;
                 const perimeterMm = (2 * lengthMm) + (2 * widthMm);
                 const perimeterM = perimeterMm / 1000;
-                const basePriceVal = parseFloat(productData.data('price')) || 0;
+                let basePriceVal = parseFloat(productData.data('price')) || 0;
+                let isVariable = row.data('is_variable');
+                if (isVariable) {
+                    var selectedOption = row.find('.wq-thickness-select option:selected');
+                    if (selectedOption.length) {
+                        let variationPrice = parseFloat(selectedOption.data('price')) || 0;
+                        basePriceVal = variationPrice;
+                    }
+                }
                 const pricePerMm2 = (() => {
                     const raw = customAttributes && customAttributes.wq_pricing_per_mm !== undefined ? customAttributes.wq_pricing_per_mm : (customAttributes ? customAttributes.price_per_mm2 : undefined);
                     const v = parseFloat(raw);
@@ -2060,8 +2106,9 @@ jQuery(document).ready(function($) {
                 };
                 
                 items.push({
-                    product_id: pid,
-                    product_name: row.find('.wq-product-search').val() || '',
+                    product_id: row.data('is_variable') && row.find('.wq-thickness-select option:selected').length ? parseInt(row.find('.wq-thickness-select option:selected').val()) : pid,
+                    parent_id: pid,
+                    product_name: row.data('is_variable') && row.find('.wq-thickness-select option:selected').length ? (row.find('.wq-product-search').val() || '') + ' - ' + row.find('.wq-thickness-select option:selected').text() : row.find('.wq-product-search').val() || '',
                     qty: qty,
                     length: lengthMm,
                     width: widthMm,
@@ -2211,7 +2258,7 @@ jQuery(document).ready(function($) {
             .data('min-len', null)
             .data('min-wid', null);
 
-        $row.find('.wq-row-thickness input').val('');
+        if (!$row.data('is_variable')) { $row.find('.wq-thickness-input').val(''); }
         $row.find('.wq-row-length input').val('');
         $row.find('.wq-row-width input').val('');
         $row.find('.wq-row-qty input').val(1);
