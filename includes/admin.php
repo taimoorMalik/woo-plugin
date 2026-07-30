@@ -324,10 +324,8 @@ function wq_formula_fields_page() {
                         // Default fields if empty (Length, Width, Thickness, Price/m2)
                         if (empty($fields)) {
                             $fields = array(
-                                array('label' => 'Thickness (mm)', 'slug' => 'thickness', 'type' => 'number', 'placeholder' => '18', 'desc' => 'Material thickness'),
-                                array('label' => 'Price per MM²', 'slug' => 'wq_pricing_per_mm', 'type' => 'number', 'placeholder' => '0.00005', 'desc' => 'Price per square mm'),
-                                array('label' => 'Max Length (mm)', 'slug' => 'wq_max_length', 'type' => 'number', 'placeholder' => '2440', 'desc' => 'Maximum length'),
-                                array('label' => 'Max Width (mm)', 'slug' => 'wq_max_width', 'type' => 'number', 'placeholder' => '1220', 'desc' => 'Maximum width'),
+                                array('label' => 'Max Length (mm)', 'slug' => 'wq_max_length', 'type' => 'number', 'placeholder' => '2800', 'desc' => 'Maximum length'),
+                                array('label' => 'Max Width (mm)', 'slug' => 'wq_max_width', 'type' => 'number', 'placeholder' => '2070', 'desc' => 'Maximum width'),
                                 array('label' => 'Min Length (mm)', 'slug' => 'wq_min_length', 'type' => 'number', 'placeholder' => '100', 'desc' => 'Minimum length'),
                                 array('label' => 'Min Width (mm)', 'slug' => 'wq_min_width', 'type' => 'number', 'placeholder' => '100', 'desc' => 'Minimum width'),
                             );
@@ -347,7 +345,7 @@ function wq_formula_fields_page() {
                                 <td><input type="text" name="wq_custom_fields[<?php echo $index; ?>][placeholder]" value="<?php echo esc_attr($field['placeholder']); ?>" /></td>
                                 <td><input type="text" name="wq_custom_fields[<?php echo $index; ?>][desc]" value="<?php echo esc_attr($field['desc']); ?>" /></td>
                                 <td>
-                                    <?php if (!in_array($field['slug'], ['thickness', 'wq_pricing_per_mm', 'wq_max_length', 'wq_max_width', 'wq_min_length', 'wq_min_width'])) : ?>
+                                    <?php if (!in_array($field['slug'], ['wq_max_length', 'wq_max_width', 'wq_min_length', 'wq_min_width'])) : ?>
                                         <button type="button" class="button wq-remove-field">Remove</button>
                                     <?php else: ?>
                                         <span class="description">System Field</span>
@@ -1305,9 +1303,6 @@ function wq_save_custom_fields( $post_id ) {
             }
         }
     } else {
-        // Fallback Legacy Save
-        $thickness = isset( $_POST['thickness'] ) ? sanitize_text_field( $_POST['thickness'] ) : '';
-        update_post_meta( $post_id, 'thickness', $thickness );
         // ... (Other fields)
     }
 

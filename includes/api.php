@@ -52,8 +52,8 @@ function wq_builder_get_products() {
                 // Fallback Legacy
                 $dynamic_data['thickness'] = get_post_meta(get_the_ID(), 'thickness', true);
                 $dynamic_data['wq_pricing_per_mm'] = get_post_meta(get_the_ID(), 'wq_pricing_per_mm', true);
-                $dynamic_data['wq_max_length'] = get_post_meta(get_the_ID(), 'wq_max_length', true);
-                $dynamic_data['wq_max_width'] = get_post_meta(get_the_ID(), 'wq_max_width', true);
+                $dynamic_data['wq_max_length'] = get_post_meta(get_the_ID(), 'wq_max_length', true) ?: '2800';
+                $dynamic_data['wq_max_width'] = get_post_meta(get_the_ID(), 'wq_max_width', true) ?: '2070';
                 $dynamic_data['wq_min_length'] = get_post_meta(get_the_ID(), 'wq_min_length', true);
                 $dynamic_data['wq_min_width'] = get_post_meta(get_the_ID(), 'wq_min_width', true);
             }
@@ -88,11 +88,41 @@ function wq_builder_get_products() {
                 $image_url = wc_placeholder_img_src();
             }
 
+            // Handle Variations
+            $variations_data = array();
+            if ( $product->is_type( 'variable' ) ) {
+                $available_variations = $product->get_available_variations();
+                foreach ( $available_variations as $variation ) {
+                    $var_obj = wc_get_product( $variation['variation_id'] );
+
+                    // Extract attributes (e.g. thickness)
+                    $attributes = $variation['attributes'];
+                    // Assume 'attribute_pa_thickness' or 'attribute_thickness'
+                    $thickness_val = '';
+                    foreach ($attributes as $key => $val) {
+                        if (strpos($key, 'thickness') !== false) {
+                            $thickness_val = $val;
+                            break;
+                        }
+                    }
+
+                    $variations_data[] = array(
+                        'id' => $variation['variation_id'],
+                        'sku' => $variation['sku'],
+                        'price' => $var_obj->get_price(),
+                        'attributes' => $attributes,
+                        'thickness' => $thickness_val
+                    );
+                }
+            }
+
 			$product_list[] = array(
 				'id'        => get_the_ID(),
 				'name'      => get_the_title(),
 				'sku'       => $product->get_sku(),
                 'price'     => $product->get_price(), // Standard Price
+                'is_variable' => $product->is_type( 'variable' ),
+                'variations' => $variations_data,
                 'custom_attributes' => $dynamic_data, // Pass all custom attributes
                 'has_edgebanding' => $has_edgebanding === 'yes',
                 'has_operations' => $has_operations === 'yes',

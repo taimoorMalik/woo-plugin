@@ -220,7 +220,16 @@ function wq_override_cart_price( $cart ) {
         if ( isset( $cart_item['wq_pricing'] ) ) {
              // New Logic: Per-Item Price Override
              $price = floatval($cart_item['wq_pricing']['unit_price']);
-             $cart_item['data']->set_price( $price );
+                          $cart_item['data']->set_price( $price );
+
+             // If a variation was selected, original_product_id holds variation ID
+             if (isset($cart_item['wq_original_product_id'])) {
+                 $var_product = wc_get_product($cart_item['wq_original_product_id']);
+                 if ($var_product && $var_product->is_type('variation')) {
+                     $cart_item['data']->set_sku($var_product->get_sku());
+                     $cart_item['data']->set_name($var_product->get_name());
+                 }
+             }
              // Also force price on object directly
              // $cart_item['data']->set_regular_price( $price );
              // $cart_item['data']->set_sale_price( '' );
