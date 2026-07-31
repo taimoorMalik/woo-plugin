@@ -432,11 +432,11 @@ function wq_formula_fields_page() {
                     <tr valign="top">
                         <th scope="row">Formula Expression</th>
                         <td>
-                            <textarea name="wq_pricing_formula" rows="3" class="large-text code"><?php echo esc_textarea( get_option('wq_pricing_formula', '({length} * {width}) * {wq_pricing_per_mm} * {qty}') ); ?></textarea>
+                            <textarea name="wq_pricing_formula" rows="3" class="large-text code"><?php echo esc_textarea( get_option('wq_pricing_formula', '({length} * {width}) / ({wq_max_length} * {wq_max_width}) * {price} * {qty}') ); ?></textarea>
                             <p class="description">
-                                Example (Price per m²): <code>{area_m2} * {wq_pricing_per_mm} * {qty}</code><br>
-                                Example (Using input unit): <code>({length} * {width}) * {wq_pricing_per_mm} * {qty}</code><br>
-                                Tip: If <code>{wq_pricing_per_mm}</code> is empty or 0 on a product, the calculation will fallback to the field placeholder value from "Fields Configuration".<br>
+                                Example (Proportional Full Board Price): <code>({length} * {width}) / ({wq_max_length} * {wq_max_width}) * {price} * {qty}</code><br>
+                                Example (Fixed Price per cut): <code>{price} * {qty}</code><br>
+                                Tip: The `{price}` tag refers to the variation's board price. `{wq_max_length}` and `{wq_max_width}` should be defined in your field settings.<br>
                                 Note: Basic math operators (+, -, *, /) and parentheses are supported.
                             </p>
                         </td>
