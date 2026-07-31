@@ -1316,7 +1316,13 @@ jQuery(document).ready(function($) {
                 formula = replaceToken(formula, 'perimeter_m', perimeterM);
                 formula = replaceToken(formula, 'price', basePriceVal);
                 formula = replaceToken(formula, 'price_per_mm2', pricePerMm2);
-                formula = replaceToken(formula, 'price_per_m2', pricePerM2);
+                                formula = replaceToken(formula, 'price_per_m2', pricePerM2);
+
+                // Ensure dimensions are replaced
+                const wqMaxLength = parseFloat(row.find('.wq-selected-product-id').data('max-len')) || 2800;
+                const wqMaxWidth = parseFloat(row.find('.wq-selected-product-id').data('max-wid')) || 2070;
+                formula = replaceToken(formula, 'wq_max_length', wqMaxLength);
+                formula = replaceToken(formula, 'wq_max_width', wqMaxWidth);
                 
                 // Replace Custom Variables
                 if (wqBuilder.custom_fields && wqBuilder.custom_fields.length > 0) {
@@ -2051,7 +2057,13 @@ jQuery(document).ready(function($) {
                 formula = replaceToken(formula, 'perimeter_m', perimeterM);
                 formula = replaceToken(formula, 'price', basePriceVal);
                 formula = replaceToken(formula, 'price_per_mm2', pricePerMm2);
-                formula = replaceToken(formula, 'price_per_m2', pricePerM2);
+                                formula = replaceToken(formula, 'price_per_m2', pricePerM2);
+
+                // Ensure dimensions are replaced
+                const wqMaxLength = parseFloat(row.find('.wq-selected-product-id').data('max-len')) || 2800;
+                const wqMaxWidth = parseFloat(row.find('.wq-selected-product-id').data('max-wid')) || 2070;
+                formula = replaceToken(formula, 'wq_max_length', wqMaxLength);
+                formula = replaceToken(formula, 'wq_max_width', wqMaxWidth);
 
                 if (wqBuilder.custom_fields && wqBuilder.custom_fields.length > 0) {
                     wqBuilder.custom_fields.forEach(field => {

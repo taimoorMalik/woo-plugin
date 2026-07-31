@@ -128,6 +128,25 @@ function wq_builder_init() {
 add_action( 'plugins_loaded', 'wq_builder_init' );
 
 // Enqueue scripts and styles.
+function wq_builder_migrate_formula() {
+    $current_formula = get_option('wq_pricing_formula', '');
+    if (strpos($current_formula, '{wq_pricing_per_mm}') !== false) {
+        update_option('wq_pricing_formula', '({length} * {width}) / ({wq_max_length} * {wq_max_width}) * {price} * {qty}');
+    }
+
+    // Clean up legacy custom fields from DB
+    $custom_fields = get_option('wq_custom_fields', array());
+    if (is_array($custom_fields) && !empty($custom_fields)) {
+        $filtered = array_filter($custom_fields, function($field) {
+            return isset($field['slug']) && $field['slug'] !== 'thickness' && $field['slug'] !== 'wq_pricing_per_mm';
+        });
+        if (count($filtered) !== count($custom_fields)) {
+            update_option('wq_custom_fields', array_values($filtered));
+        }
+    }
+}
+add_action('init', 'wq_builder_migrate_formula');
+
 function wq_builder_scripts() {
     // Enqueue Dashicons for frontend (logged-out users don't have it by default)
     wp_enqueue_style( 'dashicons' );
@@ -333,6 +352,7 @@ add_action('admin_init', 'wq_maybe_sync_dimension_unit_products');
 
 // Add "Add to Cutting List" button to single product page
 add_action('woocommerce_single_product_summary', 'wq_add_cutting_list_button', 35);
+add_action('woocommerce_after_shop_loop_item', 'wq_add_cutting_list_button', 15);
 function wq_add_cutting_list_button() {
     global $product;
     $allowed_cats = get_option('wq_builder_allowed_categories', array());
@@ -364,7 +384,13 @@ function wq_add_cutting_list_button() {
                 $('.variations_form').on('show_variation', function(event, variation) {
                     var varId = variation.variation_id;
                     var base = '" . site_url('/cut-edge/') . "';
-                    $('.wq-cutting-list-btn').attr('href', base + '?wq_material=' + varId);
+                    // Scope it to prevent global overwriting in shop loops
+                    var container = $(this).closest('.product');
+                    if (container.length) {
+                        container.find('.wq-cutting-list-btn').attr('href', base + '?wq_material=' + varId);
+                    } else {
+                        $('.wq-cutting-list-btn').attr('href', base + '?wq_material=' + varId);
+                    }
                 });
             });
             </script>";
