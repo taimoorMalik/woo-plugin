@@ -1045,7 +1045,7 @@ jQuery(document).ready(function($) {
             
             if (product.is_variable && product.variations && product.variations.length > 0) {
                 product.variations.forEach(variation => {
-                    const varName = product.name + (variation.thickness ? ' - ' + variation.thickness + 'mm' : ' - ' + variation.sku);
+                    const varName = product.name + (variation.sku ? ' - ' + variation.sku : '');
                     const varCode = variation.sku || '';
                     $container.append(`
                         <div class="wq-product-item" data-id="${product.id}" data-variation-id="${variation.id}" data-is-variable="true" data-name="${varName}" data-thickness="${variation.thickness}" data-price="${variation.price}" data-custom-attributes='${customAttributes}' data-has-edgebanding="${product.has_edgebanding}" data-has-operations="${product.has_operations}" data-operation-indexes='${JSON.stringify(product.operation_indexes || [])}' data-has-preferred-edging="${product.has_preferred_edging}" data-preferred-edge-services='${JSON.stringify(product.preferred_edge_services || [])}' data-image="${product.image || ''}">
@@ -1053,7 +1053,7 @@ jQuery(document).ready(function($) {
                                 ${imageHtml}
                                 <span class="wq-p-name">${varName}</span>
                             </div>
-                            <span class="wq-p-meta">${varCode} ${variation.thickness ? variation.thickness + 'mm' : ''}</span>
+                            <span class="wq-p-meta">${varCode}</span>
                         </div>
                     `);
                 });
