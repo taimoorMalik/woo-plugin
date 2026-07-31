@@ -850,7 +850,29 @@ jQuery(document).ready(function($) {
         }
         
         // Populate Initial Products
-        renderProductList($listContainer, window.wqProducts);
+                renderProductList($listContainer, window.wqProducts);
+
+        // Auto-select material if passed in URL
+        const urlParamsMat = new URLSearchParams(window.location.search);
+        const wqMaterial = urlParamsMat.get('wq_material');
+        if (wqMaterial) {
+            setTimeout(() => {
+                const firstRow = $('.wq-row').first();
+                if (!firstRow.length) return;
+
+                const item = $listContainer.find(`.wq-product-item[data-id="${wqMaterial}"], .wq-product-item[data-variation-id="${wqMaterial}"]`).first();
+                if (item.length) {
+                    firstRow.find('.wq-product-search').focus();
+                    item.trigger('click');
+
+                    // Clear the URL parameter so it doesn't re-trigger on refresh
+                    if (window.history.replaceState) {
+                        const newUrl = window.location.pathname;
+                        window.history.replaceState({}, document.title, newUrl);
+                    }
+                }
+            }, 500);
+        }
 
         // Toggle Dropdown
         $input.on('click', function(e) {
