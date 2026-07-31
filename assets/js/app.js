@@ -678,32 +678,13 @@ jQuery(document).ready(function($) {
                      
                                  var thicknessContainer = $row.find('.wq-row-thickness');
             var thicknessInput = thicknessContainer.find('.wq-thickness-input');
-            var thicknessSelect = thicknessContainer.find('.wq-thickness-select');
 
-            if (product.is_variable && product.variations && product.variations.length > 0) {
-                thicknessInput.hide();
-                thicknessSelect.empty().show();
+            thicknessInput.show().val((typeof item !== 'undefined' && item.thickness ? item.thickness : product.thickness) || '18').prop('readonly', true);
 
-                product.variations.forEach(function(v) {
-                    var optionText = v.thickness || 'Variation ' + v.id;
-                    if (v.thickness && !v.thickness.toString().toLowerCase().includes('mm')) {
-                        optionText += 'mm';
-                    }
-                    thicknessSelect.append('<option value="' + v.id + '" data-price="' + v.price + '" data-sku="' + v.sku + '" data-thickness="' + v.thickness + '">' + optionText + '</option>');
-                });
-
-                $row.data('variations', product.variations);
-                $row.data('is_variable', true);
-
-                thicknessSelect.off('change').on('change', function() {
-                    updatePricing();
-                    updateStatus($row);
-                });
-
-            } else {
-                thicknessSelect.hide();
-                thicknessInput.show().val(product.thickness || '18');
-                $row.data('is_variable', false);
+            // Set variables dynamically to the hidden input state
+            $row.find('.wq-selected-product-id').data('is_variable', typeof item !== 'undefined' && item.is_variable);
+            if (typeof item !== 'undefined' && item.is_variable) {
+                $row.find('.wq-selected-product-id').data('variation-id', item.product_id);
             }
                      
                      // Enable Checkboxes if needed
@@ -964,10 +945,11 @@ jQuery(document).ready(function($) {
         // Select Product
         $listContainer.on('click', '.wq-product-item', function() {
             const id = $(this).data('id');
+            const variationId = $(this).data('variation-id');
+            const isVariable = $(this).data('is-variable');
             const name = $(this).data('name');
             const thickness = $(this).data('thickness');
             const price = $(this).data('price');
-            // const priceMm = $(this).data('price-mm'); // Legacy
             const customAttributes = $(this).data('custom-attributes'); // New Object
             
             const hasEdgebanding = $(this).data('has-edgebanding');
@@ -981,6 +963,8 @@ jQuery(document).ready(function($) {
             $row.find('.wq-selected-product-id')
                 .val(id)
                 .data('price', price)
+                .data('variation-id', variationId)
+                .data('is_variable', isVariable)
                 .data('custom-attributes', customAttributes) // Store object
                 .data('has-edgebanding', hasEdgebanding)
                 .data('has-operations', hasOperations)
@@ -988,8 +972,10 @@ jQuery(document).ready(function($) {
                 .data('has-preferred-edging', hasPreferredEdging)
                 .data('preferred-edge-services', preferredEdgeServices)
                 .data('image', image);
+
+
                 
-            if ($row.data('is_variable')) { $row.find('.wq-thickness-select').val(thickness); } else { $row.find('.wq-thickness-input').val(thickness); }
+            $row.find('.wq-thickness-input').val(thickness);
             
             // Set Tooltips for Min/Max Dimensions
             // Use mapped fields if available, otherwise fallback to defaults (though defaults should be passed from backend)
@@ -1054,23 +1040,34 @@ jQuery(document).ready(function($) {
             const imageHtml = product.image ? `<img src="${product.image}" class="wq-p-image" alt="${product.name}">` : '';
             const customAttributes = product.custom_attributes ? JSON.stringify(product.custom_attributes) : '{}';
             
-            // Get thickness dynamically if it's a custom field now
             const thickness = product.custom_attributes && product.custom_attributes.thickness ? product.custom_attributes.thickness : (product.thickness || '');
-            
-            // Format meta info like "CODE 19mm"
-            // Use SKU or a code if available
             const code = product.sku || ''; 
-            // const thicknessDisplay = thickness ? thickness + 'mm' : ''; // Removed per user request
             
-            $container.append(`
-                <div class="wq-product-item" data-id="${product.id}" data-name="${product.name}" data-thickness="${thickness}" data-price="${product.price}" data-custom-attributes='${customAttributes}' data-has-edgebanding="${product.has_edgebanding}" data-has-operations="${product.has_operations}" data-operation-indexes='${JSON.stringify(product.operation_indexes || [])}' data-has-preferred-edging="${product.has_preferred_edging}" data-preferred-edge-services='${JSON.stringify(product.preferred_edge_services || [])}' data-image="${product.image || ''}">
-                    <div class="wq-p-left">
-                        ${imageHtml}
-                        <span class="wq-p-name">${product.name}</span>
+            if (product.is_variable && product.variations && product.variations.length > 0) {
+                product.variations.forEach(variation => {
+                    const varName = product.name + (variation.thickness ? ' - ' + variation.thickness + 'mm' : ' - ' + variation.sku);
+                    const varCode = variation.sku || '';
+                    $container.append(`
+                        <div class="wq-product-item" data-id="${product.id}" data-variation-id="${variation.id}" data-is-variable="true" data-name="${varName}" data-thickness="${variation.thickness}" data-price="${variation.price}" data-custom-attributes='${customAttributes}' data-has-edgebanding="${product.has_edgebanding}" data-has-operations="${product.has_operations}" data-operation-indexes='${JSON.stringify(product.operation_indexes || [])}' data-has-preferred-edging="${product.has_preferred_edging}" data-preferred-edge-services='${JSON.stringify(product.preferred_edge_services || [])}' data-image="${product.image || ''}">
+                            <div class="wq-p-left">
+                                ${imageHtml}
+                                <span class="wq-p-name">${varName}</span>
+                            </div>
+                            <span class="wq-p-meta">${varCode} ${variation.thickness ? variation.thickness + 'mm' : ''}</span>
+                        </div>
+                    `);
+                });
+            } else {
+                $container.append(`
+                    <div class="wq-product-item" data-id="${product.id}" data-is-variable="false" data-name="${product.name}" data-thickness="${thickness}" data-price="${product.price}" data-custom-attributes='${customAttributes}' data-has-edgebanding="${product.has_edgebanding}" data-has-operations="${product.has_operations}" data-operation-indexes='${JSON.stringify(product.operation_indexes || [])}' data-has-preferred-edging="${product.has_preferred_edging}" data-preferred-edge-services='${JSON.stringify(product.preferred_edge_services || [])}' data-image="${product.image || ''}">
+                        <div class="wq-p-left">
+                            ${imageHtml}
+                            <span class="wq-p-name">${product.name}</span>
+                        </div>
+                        <span class="wq-p-meta">${code}</span>
                     </div>
-                    <span class="wq-p-meta">${code}</span>
-                </div>
-            `);
+                `);
+            }
         });
     }
 
@@ -1237,7 +1234,7 @@ jQuery(document).ready(function($) {
             const length = parseFloat(row.find('.wq-row-length input').val()) || 0;
             const width = parseFloat(row.find('.wq-row-width input').val()) || 0;
             const qty = parseInt(row.find('.wq-row-qty input').val()) || 0;
-            const thickness = row.data('is_variable') ? (row.find('.wq-thickness-select option:selected').data('thickness') || row.find('.wq-thickness-select option:selected').text().replace('mm', '')) : row.find('.wq-thickness-input').val(); // DEFINED HERE
+            const thickness = row.find('.wq-thickness-input').val(); // DEFINED HERE
             const lengthMm = dimensionToMm(length);
             const widthMm = dimensionToMm(width);
             
@@ -1292,15 +1289,8 @@ jQuery(document).ready(function($) {
                 const areaM2 = lengthM * widthM;
                 const perimeterMm = (2 * lengthMm) + (2 * widthMm);
                 const perimeterM = perimeterMm / 1000;
-                let basePriceVal = parseFloat(productData.data('price')) || 0;
-                let isVariable = row.data('is_variable');
-                if (isVariable) {
-                    var selectedOption = row.find('.wq-thickness-select option:selected');
-                    if (selectedOption.length) {
-                        let variationPrice = parseFloat(selectedOption.data('price')) || 0;
-                        basePriceVal = variationPrice;
-                    }
-                }
+                let basePriceVal = parseFloat(row.find('.wq-selected-product-id').data('price')) || 0;
+
                 const pricePerMm2 = (() => {
                     const raw = customAttributes && customAttributes.wq_pricing_per_mm !== undefined ? customAttributes.wq_pricing_per_mm : (customAttributes ? customAttributes.price_per_mm2 : undefined);
                     const v = parseFloat(raw);
@@ -1928,7 +1918,7 @@ jQuery(document).ready(function($) {
                 // Re-calculate row data to ensure fresh breakdown
                 const length = parseFloat(row.find('.wq-row-length input').val()) || 0;
                 const width = parseFloat(row.find('.wq-row-width input').val()) || 0;
-                const thickness = row.data('is_variable') ? (row.find('.wq-thickness-select option:selected').data('thickness') || row.find('.wq-thickness-select option:selected').text().replace('mm', '')) : row.find('.wq-thickness-input').val();
+                const thickness = row.find('.wq-thickness-input').val();
                 const lengthMm = dimensionToMm(length);
                 const widthMm = dimensionToMm(width);
                 
@@ -2034,15 +2024,8 @@ jQuery(document).ready(function($) {
                 const areaM2 = lengthM * widthM;
                 const perimeterMm = (2 * lengthMm) + (2 * widthMm);
                 const perimeterM = perimeterMm / 1000;
-                let basePriceVal = parseFloat(productData.data('price')) || 0;
-                let isVariable = row.data('is_variable');
-                if (isVariable) {
-                    var selectedOption = row.find('.wq-thickness-select option:selected');
-                    if (selectedOption.length) {
-                        let variationPrice = parseFloat(selectedOption.data('price')) || 0;
-                        basePriceVal = variationPrice;
-                    }
-                }
+                let basePriceVal = parseFloat(row.find('.wq-selected-product-id').data('price')) || 0;
+
                 const pricePerMm2 = (() => {
                     const raw = customAttributes && customAttributes.wq_pricing_per_mm !== undefined ? customAttributes.wq_pricing_per_mm : (customAttributes ? customAttributes.price_per_mm2 : undefined);
                     const v = parseFloat(raw);
@@ -2106,9 +2089,9 @@ jQuery(document).ready(function($) {
                 };
                 
                 items.push({
-                    product_id: row.data('is_variable') && row.find('.wq-thickness-select option:selected').length ? parseInt(row.find('.wq-thickness-select option:selected').val()) : pid,
+                    product_id: row.find('.wq-selected-product-id').data('is_variable') && row.find('.wq-selected-product-id').data('variation-id') ? parseInt(row.find('.wq-selected-product-id').data('variation-id')) : pid,
                     parent_id: pid,
-                    product_name: row.data('is_variable') && row.find('.wq-thickness-select option:selected').length ? (row.find('.wq-product-search').val() || '') + ' - ' + row.find('.wq-thickness-select option:selected').text() : row.find('.wq-product-search').val() || '',
+                    product_name: row.find('.wq-product-search').val() || '',
                     qty: qty,
                     length: lengthMm,
                     width: widthMm,
@@ -2258,7 +2241,7 @@ jQuery(document).ready(function($) {
             .data('min-len', null)
             .data('min-wid', null);
 
-        if (!$row.data('is_variable')) { $row.find('.wq-thickness-input').val(''); }
+        if (!$row.find('.wq-selected-product-id').data('is_variable')) { $row.find('.wq-thickness-input').val(''); }
         $row.find('.wq-row-length input').val('');
         $row.find('.wq-row-width input').val('');
         $row.find('.wq-row-qty input').val(1);
