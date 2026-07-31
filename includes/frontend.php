@@ -401,7 +401,7 @@ function wq_builder_shortcode() {
             </div>
             <div class="wq-row-thickness">
                 <span class="wq-mobile-label">Thickness (mm)</span>
-                <select class="wq-input-small wq-thickness-select" style="display:none; padding: 2px 5px; height: 30px; font-size: 14px; border: 1px solid #ccc;"></select><input type="text" class="wq-input-small wq-readonly wq-thickness-input" readonly>
+                <input type="text" class="wq-input-small wq-readonly wq-thickness-input" readonly>
             </div>
             <div class="wq-row-length">
                 <span class="wq-mobile-label">Length (<?php echo esc_html(strtolower($dim_unit_upper)); ?>)</span>

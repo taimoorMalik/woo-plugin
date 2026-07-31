@@ -171,7 +171,7 @@ function wq_builder_scripts() {
         );
     }
     
-    $pricing_formula = get_option('wq_pricing_formula', '({length} * {width}) * {wq_pricing_per_mm} * {qty}');
+    $pricing_formula = get_option('wq_pricing_formula', '({area_m2} * {price} * {qty})');
     $edge_formulas = array(
         'l1' => get_option('wq_edge_formula_l1', ''),
         'l2' => get_option('wq_edge_formula_l2', ''),
