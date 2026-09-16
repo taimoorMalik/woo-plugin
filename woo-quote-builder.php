@@ -355,6 +355,11 @@ add_action('woocommerce_single_product_summary', 'wq_add_cutting_list_button', 3
 add_action('woocommerce_after_shop_loop_item', 'wq_add_cutting_list_button', 15);
 function wq_add_cutting_list_button() {
     global $product;
+
+    if ( ! is_a( $product, 'WC_Product' ) ) {
+        return;
+    }
+
     $allowed_cats = get_option('wq_builder_allowed_categories', array());
     if (!is_array($allowed_cats)) $allowed_cats = array();
     $allowed_cats = array_map('intval', $allowed_cats);
