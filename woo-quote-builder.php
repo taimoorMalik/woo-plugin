@@ -355,6 +355,11 @@ add_action('woocommerce_single_product_summary', 'wq_add_cutting_list_button', 3
 add_action('woocommerce_after_shop_loop_item', 'wq_add_cutting_list_button', 15);
 function wq_add_cutting_list_button() {
     global $product;
+
+    if ( ! is_a( $product, 'WC_Product' ) ) {
+        return;
+    }
+
     $allowed_cats = get_option('wq_builder_allowed_categories', array());
     if (!is_array($allowed_cats)) $allowed_cats = array();
     $allowed_cats = array_map('intval', $allowed_cats);
@@ -374,26 +379,53 @@ function wq_add_cutting_list_button() {
     }
 
     if (!empty($intersect)) {
-        $cutting_list_url = site_url('/cut-edge/?wq_material=' . $product->get_id());
-        echo '<a href="' . esc_url($cutting_list_url) . '" class="button alt wq-cutting-list-btn" style="margin-top: 10px; width: 100%; text-align: center;">Add to Cutting List</a>';
+        $is_single = current_action() === 'woocommerce_single_product_summary';
 
         if ($product->is_type('variable')) {
-            // Add script to dynamically update the wq_material URL based on variation selection
-            echo "<script>
-            jQuery(document).ready(function($) {
-                $('.variations_form').on('show_variation', function(event, variation) {
-                    var varId = variation.variation_id;
-                    var base = '" . site_url('/cut-edge/') . "';
-                    // Scope it to prevent global overwriting in shop loops
-                    var container = $(this).closest('.product');
-                    if (container.length) {
-                        container.find('.wq-cutting-list-btn').attr('href', base + '?wq_material=' + varId);
-                    } else {
-                        $('.wq-cutting-list-btn').attr('href', base + '?wq_material=' + varId);
-                    }
+            if ($is_single) {
+                // On single product page, require variation selection
+                echo '<a href="#" class="button alt wq-cutting-list-btn" style="margin-top: 10px; width: 100%; text-align: center;">Add to Cutting List</a>';
+
+                echo "<script>
+                jQuery(document).ready(function($) {
+                    $('.variations_form').on('show_variation', function(event, variation) {
+                        var varId = variation.variation_id;
+                        var base = '" . site_url('/cut-edge/') . "';
+                        var container = $(this).closest('.product');
+                        if (container.length) {
+                            container.find('.wq-cutting-list-btn').attr('href', base + '?wq_material=' + varId);
+                        } else {
+                            $('.wq-cutting-list-btn').attr('href', base + '?wq_material=' + varId);
+                        }
+                    });
+
+                    $('.variations_form').on('hide_variation', function() {
+                        var container = $(this).closest('.product');
+                        if (container.length) {
+                            container.find('.wq-cutting-list-btn').attr('href', '#');
+                        } else {
+                            $('.wq-cutting-list-btn').attr('href', '#');
+                        }
+                    });
+
+                    $(document).on('click', '.wq-cutting-list-btn', function(e) {
+                        var href = $(this).attr('href');
+                        if (href === '#' || href.endsWith('#')) {
+                            e.preventDefault();
+                            alert('Please select some product options before adding to the cutting list.');
+                        }
+                    });
                 });
-            });
-            </script>";
+                </script>";
+            } else {
+                // In a shop loop, point to the product page so they can select variations
+                $product_url = $product->get_permalink();
+                echo '<a href="' . esc_url($product_url) . '" class="button alt wq-cutting-list-btn" style="margin-top: 10px; width: 100%; text-align: center;">Select Options</a>';
+            }
+        } else {
+            // Simple product
+            $cutting_list_url = site_url('/cut-edge/?wq_material=' . $product->get_id());
+            echo '<a href="' . esc_url($cutting_list_url) . '" class="button alt wq-cutting-list-btn" style="margin-top: 10px; width: 100%; text-align: center;">Add to Cutting List</a>';
         }
     }
 }
