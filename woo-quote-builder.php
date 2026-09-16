@@ -352,7 +352,7 @@ function wq_maybe_sync_dimension_unit_products() {
 add_action('admin_init', 'wq_maybe_sync_dimension_unit_products');
 
 // Add "Add to Cutting List" button to single product page
-add_action('woocommerce_single_product_summary', 'wq_add_cutting_list_button', 35);
+add_action('woocommerce_after_add_to_cart_button', 'wq_add_cutting_list_button');
 add_action('woocommerce_after_shop_loop_item', 'wq_add_cutting_list_button', 15);
 function wq_add_cutting_list_button() {
     global $product;
@@ -380,7 +380,7 @@ function wq_add_cutting_list_button() {
     }
 
     if (!empty($intersect)) {
-        $is_single = current_action() === 'woocommerce_single_product_summary';
+        $is_single = current_action() === 'woocommerce_after_add_to_cart_button';
 
         if ($product->is_type('variable')) {
             if ($is_single) {
