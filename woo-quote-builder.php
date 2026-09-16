@@ -63,7 +63,7 @@ function wq_product_page_modifications() {
             remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_price', 10);
 
             // Note: We DO NOT remove woocommerce_template_single_add_to_cart because variable products
-            // need the variation form. Instead, we hide the actual add-to-cart button via CSS.
+            // need the variation form, and the user requested both buttons to be visible.
 
             // Add Custom Quote Button
             add_action('woocommerce_single_product_summary', 'wq_add_quote_button', 30);
@@ -100,7 +100,7 @@ function wq_remove_loop_add_to_cart($button, $product) {
     return $button;
 }
 
-// Hide Wishlist Button (TI WooCommerce Wishlist & YITH) and Add to Cart Button
+// Hide Wishlist Button (TI WooCommerce Wishlist & YITH)
 add_action('wp_head', 'wq_hide_buttons_css');
 function wq_hide_buttons_css() {
     if (is_product()) {
@@ -113,8 +113,7 @@ function wq_hide_buttons_css() {
                 .yith-wcwl-add-button,
                 .add_to_wishlist,
                 .single_add_to_wishlist,
-                a[href*="add_to_wishlist"],
-                button.single_add_to_cart_button {
+                a[href*="add_to_wishlist"] {
                     display: none !important;
                 }
             </style>';
