@@ -34,9 +34,9 @@ require_once WQ_BUILDER_PATH . 'includes/woocommerce.php';
 function wq_is_quote_product($product_id) {
     $allowed_cats = get_option('wq_builder_allowed_categories', array());
     if (empty($allowed_cats)) return false;
-    
+
     $product_cats = wp_get_post_terms($product_id, 'product_cat', array('fields' => 'ids'));
-    
+
     // Check if product has any of the allowed categories (or their children could be added here logic wise)
     foreach ($product_cats as $cat_id) {
         if (in_array($cat_id, $allowed_cats)) {
@@ -61,10 +61,10 @@ function wq_product_page_modifications() {
         if (wq_is_quote_product($post->ID)) {
             // Remove Price
             remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_price', 10);
-            
-            // Remove Add to Cart
-            remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30);
-            
+
+            // Note: We DO NOT remove woocommerce_template_single_add_to_cart because variable products
+            // need the variation form. Instead, we hide the actual add-to-cart button via CSS.
+
             // Add Custom Quote Button
             add_action('woocommerce_single_product_summary', 'wq_add_quote_button', 30);
         }
@@ -100,21 +100,22 @@ function wq_remove_loop_add_to_cart($button, $product) {
     return $button;
 }
 
-// Hide Wishlist Button (TI WooCommerce Wishlist & YITH)
-add_action('wp_head', 'wq_hide_wishlist_css');
-function wq_hide_wishlist_css() {
+// Hide Wishlist Button (TI WooCommerce Wishlist & YITH) and Add to Cart Button
+add_action('wp_head', 'wq_hide_buttons_css');
+function wq_hide_buttons_css() {
     if (is_product()) {
         global $post;
         if (wq_is_quote_product($post->ID)) {
             echo '<style>
-                .tinv-wraper.tinv-wishlist, 
-                .yith-wcwl-add-to-wishlist, 
-                .wishlist_table, 
+                .tinv-wraper.tinv-wishlist,
+                .yith-wcwl-add-to-wishlist,
+                .wishlist_table,
                 .yith-wcwl-add-button,
                 .add_to_wishlist,
                 .single_add_to_wishlist,
-                a[href*="add_to_wishlist"] { 
-                    display: none !important; 
+                a[href*="add_to_wishlist"],
+                button.single_add_to_cart_button {
+                    display: none !important;
                 }
             </style>';
         }
@@ -155,15 +156,15 @@ function wq_builder_scripts() {
     $wq_script_ver = file_exists( WQ_BUILDER_PATH . 'assets/js/app.js' ) ? filemtime( WQ_BUILDER_PATH . 'assets/js/app.js' ) : WQ_BUILDER_VERSION;
 
     wp_enqueue_style( 'wq-builder-style', WQ_BUILDER_URL . 'assets/css/style.css', array(), $wq_style_ver );
-    
+
     // Enqueue jQuery UI Sortable
     wp_enqueue_script( 'jquery-ui-sortable' );
-    
+
     wp_enqueue_script( 'wq-builder-script', WQ_BUILDER_URL . 'assets/js/app.js', array( 'jquery', 'jquery-ui-sortable' ), $wq_script_ver, true );
 
     $wq_portal_fix_ver = file_exists( WQ_BUILDER_PATH . 'assets/js/investor-portal-fix.js' ) ? filemtime( WQ_BUILDER_PATH . 'assets/js/investor-portal-fix.js' ) : WQ_BUILDER_VERSION;
     wp_enqueue_script( 'wq-investor-portal-fix', WQ_BUILDER_URL . 'assets/js/investor-portal-fix.js', array( 'jquery' ), $wq_portal_fix_ver, true );
-    
+
     // Inject Custom CSS
     $custom_css = get_option('wq_custom_css');
     if ( ! empty( $custom_css ) ) {
@@ -189,7 +190,7 @@ function wq_builder_scripts() {
              array('label' => 'Min Width (mm)', 'slug' => 'wq_min_width', 'type' => 'number', 'placeholder' => '100'),
         );
     }
-    
+
     $pricing_formula = get_option('wq_pricing_formula', '({length} * {width}) / ({wq_max_length} * {wq_max_width}) * {price} * {qty}');
     $edge_formulas = array(
         'l1' => get_option('wq_edge_formula_l1', ''),
@@ -210,13 +211,13 @@ function wq_builder_scripts() {
             function( $v ) { return $v !== ''; }
         )
     );
-    
+
     // Validation Maps
     $map_min_len = get_option('wq_map_min_len', 'wq_min_length');
     $map_max_len = get_option('wq_map_max_len', 'wq_max_length');
     $map_min_wid = get_option('wq_map_min_wid', 'wq_min_width');
     $map_max_wid = get_option('wq_map_max_wid', 'wq_max_width');
-    
+
     wp_localize_script( 'wq-builder-script', 'wqBuilder', array(
         'ajax_url' => admin_url( 'admin-ajax.php' ),
         'nonce'    => wp_create_nonce( 'wq_builder_nonce' ),
@@ -384,7 +385,7 @@ function wq_add_cutting_list_button() {
         if ($product->is_type('variable')) {
             if ($is_single) {
                 // On single product page, require variation selection
-                echo '<a href="#" class="button alt wq-cutting-list-btn" style="margin-top: 10px; width: 100%; text-align: center;">Add to Cutting List</a>';
+                echo '<a href="#" class="button alt wq-cutting-list-btn">Add to Cutting List</a>';
 
                 echo "<script>
                 jQuery(document).ready(function($) {
@@ -420,12 +421,16 @@ function wq_add_cutting_list_button() {
             } else {
                 // In a shop loop, point to the product page so they can select variations
                 $product_url = $product->get_permalink();
-                echo '<a href="' . esc_url($product_url) . '" class="button alt wq-cutting-list-btn" style="margin-top: 10px; width: 100%; text-align: center;">Select Options</a>';
+                echo '<a href="' . esc_url($product_url) . '" class="button wq-cutting-list-btn">Select Options</a>';
             }
         } else {
             // Simple product
             $cutting_list_url = site_url('/cut-edge/?wq_material=' . $product->get_id());
-            echo '<a href="' . esc_url($cutting_list_url) . '" class="button alt wq-cutting-list-btn" style="margin-top: 10px; width: 100%; text-align: center;">Add to Cutting List</a>';
+            if ($is_single) {
+                echo '<a href="' . esc_url($cutting_list_url) . '" class="button alt wq-cutting-list-btn">Add to Cutting List</a>';
+            } else {
+                echo '<a href="' . esc_url($cutting_list_url) . '" class="button wq-cutting-list-btn">Add to Cutting List</a>';
+            }
         }
     }
 }
