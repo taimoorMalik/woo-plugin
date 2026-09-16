@@ -226,7 +226,11 @@ function wq_override_cart_price( $cart ) {
              if (isset($cart_item['wq_original_product_id'])) {
                  $var_product = wc_get_product($cart_item['wq_original_product_id']);
                  if ($var_product && $var_product->is_type('variation')) {
-                     $cart_item['data']->set_sku($var_product->get_sku());
+                     try {
+                         $cart_item['data']->set_sku($var_product->get_sku());
+                     } catch (Exception $e) {
+                         // Ignore duplicate SKU exceptions for cart items
+                     }
                      $cart_item['data']->set_name($var_product->get_name());
                  }
              }
