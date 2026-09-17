@@ -4,6 +4,16 @@ jQuery(document).ready(function($) {
 
     // Initialize
     function init() {
+        const urlParamsMat = new URLSearchParams(window.location.search);
+        const wqMaterial = urlParamsMat.get('wq_material');
+        if (wqMaterial) {
+            $('#wq-global-loader').show();
+            // Safety timeout to hide loader if something goes wrong
+            setTimeout(function() {
+                $('#wq-global-loader').fadeOut();
+            }, 10000);
+        }
+
         fetchProducts();
         addDefaultRows();
         setupEventHandlers();
@@ -858,7 +868,10 @@ jQuery(document).ready(function($) {
         if (wqMaterial) {
             setTimeout(() => {
                 const firstRow = $('.wq-row').first();
-                if (!firstRow.length) return;
+                if (!firstRow.length) {
+                    $('#wq-global-loader').fadeOut();
+                    return;
+                }
 
                 const item = $listContainer.find(`.wq-product-item[data-id="${wqMaterial}"], .wq-product-item[data-variation-id="${wqMaterial}"]`).first();
                 if (item.length) {
@@ -871,6 +884,8 @@ jQuery(document).ready(function($) {
                         window.history.replaceState({}, document.title, newUrl);
                     }
                 }
+
+                $('#wq-global-loader').fadeOut();
             }, 500);
         }
 
