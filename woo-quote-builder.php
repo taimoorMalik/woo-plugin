@@ -429,7 +429,7 @@ function wq_add_cutting_list_button() {
             } else {
                 // In a shop loop, point to the product page so they can select variations
                 $product_url = $product->get_permalink();
-                echo '<a href="' . esc_url($product_url) . '" class="button wq-cutting-list-btn">Select Options</a>';
+                echo '<a href="' . esc_url($product_url) . '" class="button wq-cutting-list-btn">Add to Cutting List</a>';
             }
         } else {
             // Simple product
