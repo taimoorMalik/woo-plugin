@@ -17,11 +17,7 @@ function wq_builder_shortcode() {
     if ($dim_unit === 'cm') { $dim_step = '0.1'; $dim_min = '0.1'; }
     if ($dim_unit === 'in') { $dim_step = '0.01'; $dim_min = '0.01'; }
 	?>
-	<div class="wq-builder-container" style="position: relative;">
-        <div id="wq-global-loader" style="display:none;">
-            <div class="wq-spinner"></div>
-            <div class="wq-loader-text">Loading Product...</div>
-        </div>
+	<div class="wq-builder-container">
         <div class="wq-header-tour">
             <?php if ( get_option('wq_tour_enable', 1) ) : ?>
                 <button id="wq-show-tour" class="wq-tour-btn">SHOW GUIDED TOUR &rarr;</button>
