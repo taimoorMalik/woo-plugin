@@ -352,7 +352,6 @@ add_action('admin_init', 'wq_maybe_sync_dimension_unit_products');
 
 // Add "Add to Cutting List" button to single product page
 add_action('woocommerce_after_add_to_cart_form', 'wq_add_cutting_list_button');
-add_action('woocommerce_after_shop_loop_item', 'wq_add_cutting_list_button', 15);
 function wq_add_cutting_list_button() {
     global $product;
 
@@ -379,78 +378,66 @@ function wq_add_cutting_list_button() {
     }
 
     if (!empty($intersect)) {
-        $is_single = current_action() === 'woocommerce_after_add_to_cart_form';
-
         if ($product->is_type('variable')) {
-            if ($is_single) {
-                // On single product page, require variation selection
-                echo '<div class="wq-cutting-list-container" style="display: inline-block; margin-left: 10px;">';
-                echo '<a href="#" class="button alt wq-cutting-list-btn">Add to Cutting List</a>';
-                echo '</div>';
+            // On single product page, require variation selection
+            echo '<div class="wq-cutting-list-container" style="display: inline-block; margin-left: 10px;">';
+            echo '<a href="#" class="button alt wq-cutting-list-btn">Add to Cutting List</a>';
+            echo '</div>';
 
-                echo "<script>
-                jQuery(document).ready(function($) {
-                    // Move the button beside the native add to cart button
-                    var container = $('.wq-cutting-list-container');
-                    var target = $('.single_add_to_cart_button');
-                    if(target.length && container.length) {
-                        target.after(container);
+            echo "<script>
+            jQuery(document).ready(function($) {
+                // Move the button beside the native add to cart button
+                var container = $('.wq-cutting-list-container');
+                var target = $('.single_add_to_cart_button');
+                if(target.length && container.length) {
+                    target.after(container);
+                }
+
+                $('.variations_form').on('show_variation', function(event, variation) {
+                    var varId = variation.variation_id;
+                    var base = '" . site_url('/cut-edge/') . "';
+                    var wrap = $(this).closest('.product');
+                    if (wrap.length) {
+                        wrap.find('.wq-cutting-list-btn').attr('href', base + '?wq_material=' + varId);
+                    } else {
+                        $('.wq-cutting-list-btn').attr('href', base + '?wq_material=' + varId);
                     }
-
-                    $('.variations_form').on('show_variation', function(event, variation) {
-                        var varId = variation.variation_id;
-                        var base = '" . site_url('/cut-edge/') . "';
-                        var wrap = $(this).closest('.product');
-                        if (wrap.length) {
-                            wrap.find('.wq-cutting-list-btn').attr('href', base + '?wq_material=' + varId);
-                        } else {
-                            $('.wq-cutting-list-btn').attr('href', base + '?wq_material=' + varId);
-                        }
-                    });
-
-                    $('.variations_form').on('hide_variation', function() {
-                        var wrap = $(this).closest('.product');
-                        if (wrap.length) {
-                            wrap.find('.wq-cutting-list-btn').attr('href', '#');
-                        } else {
-                            $('.wq-cutting-list-btn').attr('href', '#');
-                        }
-                    });
-
-                    $(document).on('click', '.wq-cutting-list-btn', function(e) {
-                        var href = $(this).attr('href');
-                        if (href === '#' || href.endsWith('#')) {
-                            e.preventDefault();
-                            alert('Please select some product options before adding to the cutting list.');
-                        }
-                    });
                 });
-                </script>";
-            } else {
-                // In a shop loop, point to the product page so they can select variations
-                $product_url = $product->get_permalink();
-                echo '<a href="' . esc_url($product_url) . '" class="button wq-cutting-list-btn">Add to Cutting List</a>';
-            }
+
+                $('.variations_form').on('hide_variation', function() {
+                    var wrap = $(this).closest('.product');
+                    if (wrap.length) {
+                        wrap.find('.wq-cutting-list-btn').attr('href', '#');
+                    } else {
+                        $('.wq-cutting-list-btn').attr('href', '#');
+                    }
+                });
+
+                $(document).on('click', '.wq-cutting-list-btn', function(e) {
+                    var href = $(this).attr('href');
+                    if (href === '#' || href.endsWith('#')) {
+                        e.preventDefault();
+                        alert('Please select some product options before adding to the cutting list.');
+                    }
+                });
+            });
+            </script>";
         } else {
             // Simple product
             $cutting_list_url = site_url('/cut-edge/?wq_material=' . $product->get_id());
-            if ($is_single) {
-                echo '<div class="wq-cutting-list-container" style="display: inline-block; margin-left: 10px;">';
-                echo '<a href="' . esc_url($cutting_list_url) . '" class="button alt wq-cutting-list-btn">Add to Cutting List</a>';
-                echo '</div>';
+            echo '<div class="wq-cutting-list-container" style="display: inline-block; margin-left: 10px;">';
+            echo '<a href="' . esc_url($cutting_list_url) . '" class="button alt wq-cutting-list-btn">Add to Cutting List</a>';
+            echo '</div>';
 
-                echo "<script>
-                jQuery(document).ready(function($) {
-                    var container = $('.wq-cutting-list-container');
-                    var target = $('.single_add_to_cart_button');
-                    if(target.length && container.length) {
-                        target.after(container);
-                    }
-                });
-                </script>";
-            } else {
-                echo '<a href="' . esc_url($cutting_list_url) . '" class="button wq-cutting-list-btn">Add to Cutting List</a>';
-            }
+            echo "<script>
+            jQuery(document).ready(function($) {
+                var container = $('.wq-cutting-list-container');
+                var target = $('.single_add_to_cart_button');
+                if(target.length && container.length) {
+                    target.after(container);
+                }
+            });
+            </script>";
         }
     }
 }
